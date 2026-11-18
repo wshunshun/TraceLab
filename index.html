@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TraceLab · 图片转 SVG</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+<main class="app-shell">
+  <header class="topbar">
+    <div class="brand-lockup"><div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div><div><div class="brand-name">TraceLab</div><div class="brand-subtitle">Raster to vector studio</div></div></div>
+    <div class="topbar-meta"><span class="local-badge"><i></i> 本地处理</span><span class="version">VTRACER</span></div>
+  </header>
+  <section class="workspace">
+    <aside class="control-panel">
+      <div class="panel-heading"><div><p class="eyebrow">VECTORIZE</p><h1>图片转 SVG</h1></div><div class="status-dot" id="statusDot" title="准备就绪"></div></div>
+      <label class="dropzone" id="dropzone" for="fileInput">
+        <input id="fileInput" type="file" accept="image/png,image/jpeg,image/jpg" />
+        <span class="upload-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 14.5v3A2.5 2.5 0 0 0 6.5 20h11a2.5 2.5 0 0 0 2.5-2.5v-3"/></svg></span>
+        <strong id="dropTitle">拖入图片，或点击选择</strong><span id="dropHint">PNG / JPEG · 最大建议 4096 px</span>
+      </label>
+      <div class="file-row hidden" id="fileRow"><img class="file-thumb checker" id="fileThumb" alt="" /><div class="file-info"><strong id="fileName">未选择图片</strong><span id="fileMeta">--</span></div><button class="icon-button" id="removeFile" type="button" aria-label="移除图片" title="移除图片"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5l14 14M19 5L5 19"/></svg></button></div>
+      <div class="section-label">转换参数</div>
+      <div class="control-group"><label class="control-label" for="traceProfile">图像类型</label><select id="traceProfile"><option value="auto">自动</option><option value="logo">标志 / 文字</option><option value="gradient">渐变标志</option><option value="photo">照片 / 复杂渐变</option></select></div>
+      <div class="control-group"><div class="control-label"><label for="paletteRange">颜色数量</label><output id="paletteValue" for="paletteRange">最多 16 色</output></div><input id="paletteRange" type="range" min="2" max="64" value="16" /><div class="range-hints"><span>简洁</span><span>丰富</span></div></div>
+      <div class="control-group"><div class="control-label"><label for="detailRange">细节保留</label><output id="detailValue" for="detailRange">100%</output></div><input id="detailRange" type="range" min="25" max="100" value="100" /><div class="range-hints"><span>更快</span><span>精细</span></div></div>
+      <div class="control-group"><div class="control-label"><label for="smoothRange">边缘平滑</label><output id="smoothValue" for="smoothRange">中等</output></div><input id="smoothRange" type="range" min="0" max="3" value="2" /><div class="range-hints"><span>保留锐角</span><span>柔和</span></div></div>
+      <div class="control-group"><div class="control-label"><label for="speckleRange">额外去除杂点</label><output id="speckleValue" for="speckleRange">关闭</output></div><input id="speckleRange" type="range" min="0" max="4" value="0" /><div class="range-hints"><span>保留细节</span><span>更干净</span></div></div>
+      <div class="toggle-row"><div><strong id="transparentLabel">保留原图透明区域</strong><span>关闭后使用白色背景</span></div><label class="switch"><input id="transparentToggle" type="checkbox" aria-labelledby="transparentLabel" checked /><span></span></label></div>
+      <div class="panel-actions"><button class="primary-button" id="convertButton" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12h16M13 5l7 7-7 7"/></svg>开始转换</button><button class="secondary-button" id="resetButton" type="button">恢复默认</button></div>
+      <p class="privacy-note"><span>⌁</span> 图片只在浏览器本地处理，不会上传。</p>
+    </aside>
+    <section class="preview-area">
+      <div class="preview-toolbar"><div class="view-tabs" role="group" aria-label="预览模式"><button class="tab-button" data-view="split" aria-pressed="true" type="button">对比视图</button><button class="tab-button" data-view="original" aria-pressed="false" type="button">原图</button><button class="tab-button" data-view="vector" aria-pressed="false" type="button">SVG</button></div><div class="toolbar-actions"><span class="output-state" id="outputState" role="status">等待图片</span><button class="download-button" id="downloadButton" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4v11m0 0 4-4m-4 4-4-4M5 20h14"/></svg>导出 SVG</button></div></div>
+      <div class="preview-grid" id="previewGrid" data-view="split">
+        <article class="preview-card original-card">
+          <div class="card-header"><span>原始位图</span><span class="card-chip" id="originalChip">PNG / JPEG</span></div>
+          <div class="canvas-wrap checker zoom-viewport" id="originalPreview">
+            <div class="empty-state" id="originalEmpty"><div class="empty-glyph">✦</div><span>上传图片后预览</span></div>
+            <img class="preview-content" id="originalImage" alt="原始图片预览" draggable="false" hidden />
+            <div class="zoom-toolbar" role="group" aria-label="原图预览缩放">
+              <button type="button" data-zoom="out" title="缩小" aria-label="缩小" disabled>−</button>
+              <button type="button" data-zoom="fit" title="适应窗口" aria-label="适应窗口" disabled>100%</button>
+              <button type="button" data-zoom="in" title="放大" aria-label="放大" disabled>＋</button>
+            </div>
+          </div>
+          <div class="card-footer"><span id="originalSize">—</span><span id="originalWeight">—</span></div>
+        </article>
+        <article class="preview-card vector-card">
+          <div class="card-header"><span>矢量结果</span><span class="card-chip accent" id="vectorChip">SVG · VECTOR</span></div>
+          <div class="canvas-wrap checker zoom-viewport" id="vectorPreview">
+            <div class="empty-state" id="vectorEmpty"><div class="empty-glyph">◈</div><span>转换结果会显示在这里</span></div>
+            <div id="vectorStage" class="preview-content vector-stage" role="img" aria-label="SVG 矢量预览" hidden></div>
+            <div class="zoom-toolbar" role="group" aria-label="SVG 预览缩放">
+              <button type="button" data-zoom="out" title="缩小" aria-label="缩小" disabled>−</button>
+              <button type="button" data-zoom="fit" id="zoomValue" title="适应窗口" aria-label="适应窗口" disabled>100%</button>
+              <button type="button" data-zoom="in" title="放大" aria-label="放大" disabled>＋</button>
+            </div>
+          </div>
+          <div class="card-footer"><span id="vectorSize">—</span><span id="vectorWeight">—</span></div>
+        </article>
+      </div>
+      <div class="metrics-bar"><div class="metric"><span class="metric-label">矢量路径</span><strong id="pathCount">--</strong></div><div class="metric"><span class="metric-label" id="colorLabel">使用颜色</span><strong id="colorCount">--</strong></div><div class="metric"><span class="metric-label">处理时间</span><strong id="processingTime">--</strong></div><div class="metric metric-note"><span class="sparkline" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span>输出可无限缩放</span></div></div>
+    </section>
+  </section>
+  <footer class="footer"><span>TraceLab Studio</span><span>高质量边界追踪 · 浏览器端矢量化</span></footer>
+</main>
+<script type="module" src="./main.js"></script>
+</body>
+</html>
